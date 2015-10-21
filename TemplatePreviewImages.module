@@ -25,11 +25,11 @@ class TemplatePreviewImages extends WireData implements Module {
 
         return array(
             'title' => 'Template Preview Images', 
-            'version' => 1, 
+            'version' => 2, 
             'summary' => 'Show Preview Images for selectable Templates',
             'href' => 'https://processwire.com/talk/topic/11252-module-templatepreviewimages/',
             'singular' => true,
-            'autoload' => true,
+            'autoload' => 'template=admin',
             'icon' => 'cubes', 
             );
     }
@@ -50,10 +50,13 @@ class TemplatePreviewImages extends WireData implements Module {
         $field = $event->object;
         if($field->name == 'template') {
 
+            // version number
+            $v = $this->getModuleInfo()['version'];
+
             // add styles and scripts
-            $this->config->scripts->add($this->config->urls->siteModules . $this->className . '/image-picker/image-picker.min.js?v=' . time());
-            $this->config->styles->add($this->config->urls->siteModules . $this->className . '/image-picker/image-picker.css?v=' . time());
-            $this->config->styles->add($this->config->urls->siteModules . $this->className . '/image-picker/custom.css?v=' . time());
+            $this->config->scripts->add($this->config->urls->siteModules . $this->className . '/image-picker/image-picker.min.js?v=' . $v);
+            $this->config->styles->add($this->config->urls->siteModules . $this->className . '/image-picker/image-picker.css?v=' . $v);
+            
 
             // modify markup
             $out = '<select id="template" name="template" class="required image-picker show-labels show-html">';
@@ -62,16 +65,42 @@ class TemplatePreviewImages extends WireData implements Module {
                 $tpl = wire('templates')->get($key);
 
                 // prepare image source
-                $src = $this->config->urls->siteModules . $this->className . '/' . $tpl->name . '.png';
+                $src = $this->config->urls->templates . $this->className . '/' . $tpl->name . '.png';
                 if(!is_file($this->config->paths->root . ltrim($src, '/'))) $src = $this->config->urls->siteModules . $this->className . '/placeholder.png';
 
                 // make option markup
                 $out .= '<option data-img-src="' . $src . '" value="' . $key . '">' . (($tpl->label) ? $tpl->label : $tpl->name) . '</option>';
             }
-            $out .= '</select><script type="text/javascript">$("select.image-picker").imagepicker({show_label: true})</script>';
+            $out .= '</select><script>$("select.image-picker").imagepicker({show_label: true})</script>';
+
+            // resize images
+            $out .= '<script>$("ul .thumbnails.image_picker_selector img").attr("height", "' . $this->height . '").attr("width", "' . $this->width . '");</script>';
 
             $event->return = $out;
         }
     }
-    
+
+    /**
+     * Create the Thumbnails folder
+     *
+     */
+
+    public function ___install() {
+        $folder = $this->config->paths->templates . $this->className;
+        if (!is_dir($folder)) {
+            wireMkdir($folder);
+            $this->message(sprintf($this->_("We created the folder /site/templates/%s/"), $this->className));
+        }
+    }
+
+    /**
+     * Uninstall
+     *
+     */
+    public function ___uninstall() {
+        if (is_dir($this->config->paths->templates . $this->className)) {
+            $this->message(sprintf($this->_("You may remove the folder /site/templates/%s/ manually."), $this->className));
+        }
+    }
+
 }
