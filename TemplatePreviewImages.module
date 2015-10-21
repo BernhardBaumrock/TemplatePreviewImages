@@ -1,0 +1,77 @@
+<?php
+
+/**
+ * Template Preview Images
+ * Copyright (C) 2014 by Bernhard Baumrock
+ * Available for use under the MIT License
+ *
+ * ProcessWire 2.x 
+ * Copyright (C) 2014 by Ryan Cramer 
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ * 
+ * http://processwire.com
+ *
+ */
+
+class TemplatePreviewImages extends WireData implements Module {
+
+    /**
+     * getModuleInfo is a module required by all modules to tell ProcessWire about them
+     *
+     * @return array
+     *
+     */
+    public static function getModuleInfo() {
+
+        return array(
+            'title' => 'Template Preview Images', 
+            'version' => 1, 
+            'summary' => 'Show Preview Images for selectable Templates',
+            'href' => 'http://processwire.com',
+            'singular' => true,
+            'autoload' => true,
+            'icon' => 'cubes', 
+            );
+    }
+
+    /**
+     * Initialize the module
+     */
+    public function init() {
+        $this->addHookAfter('InputfieldSelect::render', $this, 'showTemplatePreviewImages');
+    }
+
+
+    /**
+     * show preview images for template select input
+     */
+    public function showTemplatePreviewImages($event) {
+
+        $field = $event->object;
+        if($field->name == 'template') {
+
+            // add styles and scripts
+            $this->config->scripts->add($this->config->urls->siteModules . $this->className . '/image-picker/image-picker.min.js?v=' . time());
+            $this->config->styles->add($this->config->urls->siteModules . $this->className . '/image-picker/image-picker.css?v=' . time());
+            $this->config->styles->add($this->config->urls->siteModules . $this->className . '/image-picker/custom.css?v=' . time());
+
+            // modify markup
+            $out = '<select id="template" name="template" class="required image-picker show-labels show-html">';
+            foreach($field->options as $key => $val) {
+                // get template from current option
+                $tpl = wire('templates')->get($key);
+
+                // prepare image source
+                $src = $this->config->urls->siteModules . $this->className . '/' . $tpl->name . '.png';
+                if(!is_file($this->config->paths->root . ltrim($src, '/'))) $src = $this->config->urls->siteModules . $this->className . '/placeholder.png';
+
+                // make option markup
+                $out .= '<option data-img-src="' . $src . '" value="' . $key . '">' . (($tpl->label) ? $tpl->label : $tpl->name) . '</option>';
+            }
+            $out .= '</select><script type="text/javascript">$("select.image-picker").imagepicker({show_label: true})</script>';
+
+            $event->return = $out;
+        }
+    }
+    
+}
