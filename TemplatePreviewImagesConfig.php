@@ -2,7 +2,7 @@
 class TemplatePreviewImagesConfig extends ModuleConfig {
   public function getDefaults() {
     return array(
-      'height' => 200,
+      'height' => 150,
     );
   }
   public function getInputfields() {
