@@ -27,7 +27,7 @@ class TemplatePreviewImages extends WireData implements Module {
             'title' => 'Template Preview Images', 
             'version' => 1, 
             'summary' => 'Show Preview Images for selectable Templates',
-            'href' => 'http://processwire.com',
+            'href' => 'https://processwire.com/talk/topic/11252-module-templatepreviewimages/',
             'singular' => true,
             'autoload' => true,
             'icon' => 'cubes', 
