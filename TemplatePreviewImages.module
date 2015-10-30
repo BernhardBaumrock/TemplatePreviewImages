@@ -52,7 +52,8 @@ class TemplatePreviewImages extends WireData implements Module {
         if($field->name == 'template') {
 
             // version number
-            $v = $this->getModuleInfo()['version'];
+            $v = $this->getModuleInfo();
+            $v = $v['version'];
 
             // add styles and scripts
             $this->config->scripts->add($this->config->urls->siteModules . $this->className . '/image-picker/image-picker.min.js?v=' . $v);
